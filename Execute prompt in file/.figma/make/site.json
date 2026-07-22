@@ -1,0 +1,10 @@
+{
+  "description": "This web application streamlines task execution by efficiently processing prompts from uploaded files, enhancing productivity for users across various industries.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
