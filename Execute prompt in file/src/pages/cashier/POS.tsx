@@ -18,6 +18,7 @@ import { inventoryService } from '../../services/inventoryService';
 import { formatCurrency } from '../../utils/formatters';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNotifications } from '../../contexts/NotificationContext';
+import { getMenuItemImage } from '../../data/menuImages';
 
 interface CartItem {
   menuItemId: string;
@@ -143,8 +144,14 @@ export default function POS() {
                       onClick={() => addToCart(item)}
                     >
                       {qty > 0 && <Badge badgeContent={qty} color="primary" sx={{ position: 'absolute', top: 8, right: 8 }} />}
-                      <Box sx={{ height: 80, bgcolor: item.type === 'drink' ? '#2980B915' : '#FF6B3515', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        {item.type === 'drink' ? <LocalBar sx={{ fontSize: 32, color: '#2980B9', opacity: 0.7 }} /> : <RestaurantMenu sx={{ fontSize: 32, color: '#FF6B35', opacity: 0.7 }} />}
+                      <Box sx={{ height: 80, bgcolor: item.type === 'drink' ? '#2980B915' : '#FF6B3515', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                        {getMenuItemImage(item) ? (
+                          <Box component="img" src={getMenuItemImage(item)} alt={item.name} sx={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        ) : item.type === 'drink' ? (
+                          <LocalBar sx={{ fontSize: 32, color: '#2980B9', opacity: 0.7 }} />
+                        ) : (
+                          <RestaurantMenu sx={{ fontSize: 32, color: '#FF6B35', opacity: 0.7 }} />
+                        )}
                       </Box>
                       <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
                         <Typography variant="body2" fontWeight={700} noWrap>{item.name}</Typography>
@@ -195,6 +202,9 @@ export default function POS() {
                 </Box>
               ) : cart.map((item) => (
                 <Box key={item.menuItemId} sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 1, borderBottom: 1, borderColor: 'divider' }}>
+                  {getMenuItemImage(item) && (
+                    <Box component="img" src={getMenuItemImage(item)} alt="" sx={{ width: 40, height: 40, borderRadius: 1, objectFit: 'cover', flexShrink: 0 }} />
+                  )}
                   <Box sx={{ flex: 1, minWidth: 0 }}>
                     <Typography variant="body2" fontWeight={600} noWrap>{item.name}</Typography>
                     <Typography variant="caption" color="text.secondary">{formatCurrency(item.price)} each</Typography>

@@ -10,14 +10,35 @@ export const employeeService = {
 
   create(data: any) {
     const users = getAll<any>(KEY);
-    if (users.find((u: any) => u.email === data.email)) throw new Error('Email already exists');
-    const r = create(KEY, { ...data, password: data.password || '123456' });
+    const email = String(data.email || '').trim().toLowerCase();
+    if (users.some((u: any) => String(u.email || '').toLowerCase() === email)) throw new Error('Email already exists');
+    const r = create(KEY, {
+      ...data,
+      name: String(data.name || '').trim(),
+      email,
+      salary: data.salary === undefined ? undefined : Number(data.salary),
+      password: data.password || '123456',
+      role: data.role || 'waiter',
+      status: data.status || 'active',
+    });
     auditService.log('CREATE', `Employee "${data.name}" created`);
     return r;
   },
 
   update(id: string, data: any) {
-    const r = update(KEY, id, data);
+    const users = getAll<any>(KEY);
+    const email = String(data.email || '').trim().toLowerCase();
+    if (users.some((u: any) => u.id !== id && String(u.email || '').toLowerCase() === email)) {
+      throw new Error('Email already exists');
+    }
+    const changes = {
+      ...data,
+      name: String(data.name || '').trim(),
+      email,
+      salary: data.salary === undefined ? undefined : Number(data.salary),
+    };
+    if (!changes.password) delete changes.password;
+    const r = update(KEY, id, changes);
     auditService.log('UPDATE', `Employee "${data.name}" updated`);
     return r;
   },

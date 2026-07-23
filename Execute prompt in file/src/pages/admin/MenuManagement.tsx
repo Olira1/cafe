@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import {
-  Box, Button, Grid, Card, CardContent, CardMedia, Typography, Chip, IconButton,
+  Box, Button, Grid, Card, CardContent, Typography, Chip, IconButton,
   TextField, Dialog, DialogTitle, DialogContent, DialogActions, Tab, Tabs,
-  MenuItem, Select, FormControl, InputLabel, Switch, FormControlLabel, Avatar, Tooltip,
+  MenuItem, Select, FormControl, InputLabel, Switch, FormControlLabel, Alert,
 } from '@mui/material';
-import { Add, Edit, Delete, Search, RestaurantMenu, LocalBar } from '@mui/icons-material';
+import { Add, Edit, Delete, Search, RestaurantMenu, LocalBar, CloudUpload, Close } from '@mui/icons-material';
 import { useForm, Controller } from 'react-hook-form';
 import AdminLayout from '../../layouts/AdminLayout';
 import PageHeader from '../../components/common/PageHeader';
@@ -12,6 +12,7 @@ import ConfirmDialog from '../../components/common/ConfirmDialog';
 import EmptyState from '../../components/common/EmptyState';
 import { menuService } from '../../services/menuService';
 import { formatCurrency } from '../../utils/formatters';
+import { getMenuItemImage } from '../../data/menuImages';
 
 export default function MenuManagement() {
   const [tab, setTab] = useState(0);
@@ -25,6 +26,7 @@ export default function MenuManagement() {
   const [editItem, setEditItem] = useState<any>(null);
   const [deleteTarget, setDeleteTarget] = useState<any>(null);
   const [deleteType, setDeleteType] = useState('');
+  const [imageError, setImageError] = useState('');
 
   const catForm = useForm();
   const itemForm = useForm();
@@ -45,8 +47,40 @@ export default function MenuManagement() {
     load(); setCatDialog(false);
   };
 
-  const openItemCreate = () => { setEditItem(null); itemForm.reset({ available: true, type: 'food', price: '' }); setItemDialog(true); };
-  const openItemEdit = (item: any) => { setEditItem(item); itemForm.reset(item); setItemDialog(true); };
+  const openItemCreate = () => {
+    setEditItem(null);
+    setImageError('');
+    itemForm.reset({ available: true, type: 'food', price: '', image: '' });
+    setItemDialog(true);
+  };
+  const openItemEdit = (item: any) => {
+    setEditItem(item);
+    setImageError('');
+    itemForm.reset(item);
+    setItemDialog(true);
+  };
+  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setImageError('Please choose an image file.');
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      setImageError('Image must be 2 MB or smaller.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      itemForm.setValue('image', reader.result as string, { shouldDirty: true });
+      setImageError('');
+    };
+    reader.onerror = () => setImageError('The image could not be read. Please try another file.');
+    reader.readAsDataURL(file);
+  };
   const onItemSubmit = (data: any) => {
     const payload = { ...data, price: parseFloat(data.price) };
     if (editItem) menuService.updateItem(editItem.id, payload); else menuService.createItem(payload);
@@ -98,8 +132,14 @@ export default function MenuManagement() {
               {filteredItems.map((item) => (
                 <Grid key={item.id} size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
                   <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-                    <Box sx={{ height: 140, bgcolor: item.type === 'drink' ? '#2980B920' : '#FF6B3520', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      {item.type === 'drink' ? <LocalBar sx={{ fontSize: 56, color: '#2980B9', opacity: 0.6 }} /> : <RestaurantMenu sx={{ fontSize: 56, color: '#FF6B35', opacity: 0.6 }} />}
+                    <Box sx={{ height: 140, bgcolor: item.type === 'drink' ? '#2980B920' : '#FF6B3520', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                      {getMenuItemImage(item) ? (
+                        <Box component="img" src={getMenuItemImage(item)} alt={item.name} sx={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ) : item.type === 'drink' ? (
+                        <LocalBar sx={{ fontSize: 56, color: '#2980B9', opacity: 0.6 }} />
+                      ) : (
+                        <RestaurantMenu sx={{ fontSize: 56, color: '#FF6B35', opacity: 0.6 }} />
+                      )}
                     </Box>
                     <CardContent sx={{ flex: 1 }}>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 0.5 }}>
@@ -215,6 +255,42 @@ export default function MenuManagement() {
               </Grid>
               <Grid size={{ xs: 12 }}>
                 <TextField fullWidth label="Description" multiline rows={2} {...itemForm.register('description')} />
+              </Grid>
+              <Grid size={{ xs: 12 }}>
+                <Controller
+                  name="image"
+                  control={itemForm.control}
+                  defaultValue=""
+                  render={({ field }) => (
+                    <Box>
+                      <Typography variant="subtitle2" sx={{ mb: 1 }}>Item Image</Typography>
+                      {field.value ? (
+                        <Box sx={{ position: 'relative', height: 180, borderRadius: 2, overflow: 'hidden', border: 1, borderColor: 'divider', bgcolor: 'action.hover' }}>
+                          <Box component="img" src={field.value} alt="Menu item preview" sx={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          <IconButton
+                            aria-label="Remove image"
+                            onClick={() => { field.onChange(''); setImageError(''); }}
+                            sx={{ position: 'absolute', top: 8, right: 8, bgcolor: 'background.paper', boxShadow: 1, '&:hover': { bgcolor: 'background.paper' } }}
+                          >
+                            <Close />
+                          </IconButton>
+                        </Box>
+                      ) : (
+                        <Box sx={{ height: 120, border: '1px dashed', borderColor: 'divider', borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'action.hover' }}>
+                          <Typography variant="body2" color="text.secondary">No image selected</Typography>
+                        </Box>
+                      )}
+                      <Button component="label" variant="outlined" startIcon={<CloudUpload />} sx={{ mt: 1.5 }}>
+                        {field.value ? 'Replace Image' : 'Upload Image'}
+                        <input hidden type="file" accept="image/*" onChange={handleImageChange} />
+                      </Button>
+                      <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 0.75 }}>
+                        JPG, PNG, WEBP, or GIF. Maximum size 2 MB.
+                      </Typography>
+                      {imageError && <Alert severity="error" sx={{ mt: 1 }}>{imageError}</Alert>}
+                    </Box>
+                  )}
+                />
               </Grid>
               <Grid size={{ xs: 12 }}>
                 <Controller name="available" control={itemForm.control} defaultValue={true} render={({ field }) => <FormControlLabel control={<Switch {...field} checked={field.value} />} label="Available" />} />

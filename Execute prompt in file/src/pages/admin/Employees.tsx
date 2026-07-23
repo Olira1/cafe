@@ -16,6 +16,7 @@ import { getInitials, formatDate, formatCurrency } from '../../utils/formatters'
 
 const ROLES = ['admin', 'cashier', 'chef', 'waiter'];
 const ROLE_COLORS: Record<string, string> = { admin: '#FF6B35', cashier: '#2980B9', chef: '#27AE60', waiter: '#8E44AD' };
+const today = () => new Date().toISOString().slice(0, 10);
 
 export default function Employees() {
   const [employees, setEmployees] = useState<any[]>([]);
@@ -28,26 +29,77 @@ export default function Employees() {
   const [deleteTarget, setDeleteTarget] = useState<any>(null);
   const [error, setError] = useState('');
 
-  const { register, handleSubmit, reset, control, formState: { errors } } = useForm();
+  const { register, handleSubmit, reset, control, formState: { errors, isSubmitting } } = useForm({
+    defaultValues: {
+      name: '',
+      email: '',
+      password: '',
+      role: 'waiter',
+      phone: '',
+      salary: '',
+      joinDate: today(),
+      status: 'active',
+    },
+  });
 
   const load = () => setEmployees(employeeService.getEmployees());
   useEffect(load, []);
 
   const filtered = employees.filter((e) => {
-    const matchSearch = e.name.toLowerCase().includes(search.toLowerCase()) || e.email.toLowerCase().includes(search.toLowerCase());
+    const query = search.trim().toLowerCase();
+    const matchSearch = String(e.name || '').toLowerCase().includes(query) || String(e.email || '').toLowerCase().includes(query);
     const matchRole = roleFilter === 'all' || e.role === roleFilter;
     return matchSearch && matchRole;
   });
 
   const paginated = filtered.slice(page * rowsPerPage, (page + 1) * rowsPerPage);
 
-  const openCreate = () => { setEditTarget(null); reset({}); setError(''); setDialogOpen(true); };
-  const openEdit = (emp: any) => { setEditTarget(emp); reset(emp); setError(''); setDialogOpen(true); };
+  const openCreate = () => {
+    setEditTarget(null);
+    reset({
+      name: '',
+      email: '',
+      password: '',
+      role: 'waiter',
+      phone: '',
+      salary: '',
+      joinDate: today(),
+      status: 'active',
+    });
+    setError('');
+    setDialogOpen(true);
+  };
+  const openEdit = (emp: any) => {
+    setEditTarget(emp);
+    reset({
+      ...emp,
+      name: emp.name || '',
+      email: emp.email || '',
+      role: ROLES.includes(emp.role) ? emp.role : 'waiter',
+      phone: emp.phone || '',
+      salary: emp.salary ?? '',
+      joinDate: emp.joinDate || today(),
+      status: emp.status === 'inactive' ? 'inactive' : 'active',
+    });
+    setError('');
+    setDialogOpen(true);
+  };
 
   const onSubmit = (data: any) => {
     try {
-      if (editTarget) { employeeService.update(editTarget.id, data); }
-      else { employeeService.create(data); }
+      const salary = data.salary === '' ? undefined : Number(data.salary);
+      if (salary !== undefined && (!Number.isFinite(salary) || salary < 0)) {
+        throw new Error('Salary must be a valid positive number');
+      }
+      const payload = {
+        ...data,
+        name: data.name.trim(),
+        email: data.email.trim().toLowerCase(),
+        phone: data.phone?.trim() || '',
+        salary,
+      };
+      if (editTarget) employeeService.update(editTarget.id, payload);
+      else employeeService.create(payload);
       load();
       setDialogOpen(false);
     } catch (e: any) { setError(e.message); }
@@ -98,7 +150,7 @@ export default function Employees() {
                 <TableRow key={emp.id} hover>
                   <TableCell>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                      <Avatar sx={{ bgcolor: ROLE_COLORS[emp.role] || '#999', width: 36, height: 36, fontSize: '0.75rem' }}>{getInitials(emp.name)}</Avatar>
+                      <Avatar sx={{ bgcolor: ROLE_COLORS[emp.role] || '#999', width: 36, height: 36, fontSize: '0.75rem' }}>{getInitials(String(emp.name || '?'))}</Avatar>
                       <Box>
                         <Box sx={{ fontWeight: 600, fontSize: '0.875rem' }}>{emp.name}</Box>
                         <Box sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>{emp.email}</Box>
@@ -107,7 +159,7 @@ export default function Employees() {
                   </TableCell>
                   <TableCell><Chip label={emp.role} size="small" sx={{ bgcolor: `${ROLE_COLORS[emp.role]}20`, color: ROLE_COLORS[emp.role], fontWeight: 700, textTransform: 'capitalize' }} /></TableCell>
                   <TableCell>{emp.phone || '-'}</TableCell>
-                  <TableCell>{emp.salary ? formatCurrency(emp.salary) : '-'}</TableCell>
+                  <TableCell>{Number.isFinite(Number(emp.salary)) ? formatCurrency(Number(emp.salary)) : '-'}</TableCell>
                   <TableCell>{formatDate(emp.joinDate)}</TableCell>
                   <TableCell><Chip label={emp.status} size="small" color={emp.status === 'active' ? 'success' : 'default'} /></TableCell>
                   <TableCell align="right">
@@ -130,25 +182,28 @@ export default function Employees() {
       {/* Employee Form Dialog */}
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle>{editTarget ? 'Edit Employee' : 'Add New Employee'}</DialogTitle>
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <form onSubmit={handleSubmit(onSubmit)} noValidate>
           <DialogContent>
             {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
             <Grid container spacing={2}>
               <Grid size={{ xs: 12 }}>
-                <TextField fullWidth label="Full Name" {...register('name', { required: 'Required' })} error={!!errors.name} helperText={errors.name?.message as string} />
+                <TextField fullWidth label="Full Name" autoFocus {...register('name', { required: 'Full name is required', validate: (value) => value.trim().length >= 2 || 'Enter at least 2 characters' })} error={!!errors.name} helperText={errors.name?.message as string} />
               </Grid>
               <Grid size={{ xs: 12 }}>
-                <TextField fullWidth label="Email" type="email" {...register('email', { required: 'Required' })} error={!!errors.email} helperText={errors.email?.message as string} />
+                <TextField fullWidth label="Email" type="email" {...register('email', {
+                  required: 'Email is required',
+                  pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: 'Enter a valid email address' },
+                })} error={!!errors.email} helperText={errors.email?.message as string} />
               </Grid>
               {!editTarget && (
                 <Grid size={{ xs: 12 }}>
-                  <TextField fullWidth label="Password" type="password" {...register('password', { required: 'Required' })} error={!!errors.password} helperText={errors.password?.message as string} />
+                  <TextField fullWidth label="Password" type="password" {...register('password', { required: 'Password is required', minLength: { value: 6, message: 'Use at least 6 characters' } })} error={!!errors.password} helperText={errors.password?.message as string} />
                 </Grid>
               )}
-              <Grid size={{ xs: 6 }}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <FormControl fullWidth error={!!errors.role}>
                   <InputLabel>Role</InputLabel>
-                  <Controller name="role" control={control} rules={{ required: 'Required' }} defaultValue=""
+                  <Controller name="role" control={control} rules={{ required: 'Role is required' }}
                     render={({ field }) => (
                       <Select {...field} label="Role">
                         {ROLES.map((r) => <MenuItem key={r} value={r}>{r.charAt(0).toUpperCase() + r.slice(1)}</MenuItem>)}
@@ -156,19 +211,19 @@ export default function Employees() {
                     )} />
                 </FormControl>
               </Grid>
-              <Grid size={{ xs: 6 }}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField fullWidth label="Phone" {...register('phone')} />
               </Grid>
-              <Grid size={{ xs: 6 }}>
-                <TextField fullWidth label="Salary" type="number" {...register('salary')} />
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <TextField fullWidth label="Salary" type="number" inputProps={{ min: 0, step: '0.01' }} {...register('salary', { min: { value: 0, message: 'Salary cannot be negative' } })} error={!!errors.salary} helperText={errors.salary?.message as string} />
               </Grid>
-              <Grid size={{ xs: 6 }}>
-                <TextField fullWidth label="Join Date" type="date" InputLabelProps={{ shrink: true }} {...register('joinDate')} />
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <TextField fullWidth label="Join Date" type="date" InputLabelProps={{ shrink: true }} {...register('joinDate', { required: 'Join date is required' })} error={!!errors.joinDate} helperText={errors.joinDate?.message as string} />
               </Grid>
               <Grid size={{ xs: 12 }}>
                 <FormControl fullWidth>
                   <InputLabel>Status</InputLabel>
-                  <Controller name="status" control={control} defaultValue="active"
+                  <Controller name="status" control={control}
                     render={({ field }) => (
                       <Select {...field} label="Status">
                         <MenuItem value="active">Active</MenuItem>
@@ -181,7 +236,7 @@ export default function Employees() {
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setDialogOpen(false)}>Cancel</Button>
-            <Button type="submit" variant="contained">{editTarget ? 'Update' : 'Create'}</Button>
+            <Button type="submit" variant="contained" disabled={isSubmitting}>{editTarget ? 'Update' : 'Create'}</Button>
           </DialogActions>
         </form>
       </Dialog>

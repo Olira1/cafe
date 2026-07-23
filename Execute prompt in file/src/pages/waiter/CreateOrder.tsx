@@ -11,6 +11,7 @@ import { settingsService } from '../../services/settingsService';
 import { formatCurrency } from '../../utils/formatters';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNotifications } from '../../contexts/NotificationContext';
+import { getMenuItemImage } from '../../data/menuImages';
 
 export default function CreateOrder() {
   const [categories, setCategories] = useState<any[]>([]);
@@ -101,8 +102,14 @@ export default function CreateOrder() {
                 return (
                   <Grid key={item.id} size={{ xs: 6, sm: 4 }}>
                     <Card sx={{ cursor: 'pointer', border: qty > 0 ? 2 : 1, borderColor: qty > 0 ? 'primary.main' : 'divider', '&:hover': { borderColor: 'primary.main' }, transition: 'all 0.15s' }} onClick={() => addToCart(item)}>
-                      <Box sx={{ height: 70, bgcolor: item.type === 'drink' ? '#2980B915' : '#FF6B3515', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        {item.type === 'drink' ? <LocalBar sx={{ fontSize: 28, color: '#2980B9', opacity: 0.7 }} /> : <RestaurantMenu sx={{ fontSize: 28, color: '#FF6B35', opacity: 0.7 }} />}
+                      <Box sx={{ height: 70, bgcolor: item.type === 'drink' ? '#2980B915' : '#FF6B3515', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                        {getMenuItemImage(item) ? (
+                          <Box component="img" src={getMenuItemImage(item)} alt={item.name} sx={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        ) : item.type === 'drink' ? (
+                          <LocalBar sx={{ fontSize: 28, color: '#2980B9', opacity: 0.7 }} />
+                        ) : (
+                          <RestaurantMenu sx={{ fontSize: 28, color: '#FF6B35', opacity: 0.7 }} />
+                        )}
                       </Box>
                       <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
                         <Typography variant="body2" fontWeight={700} noWrap>{item.name}</Typography>
@@ -126,6 +133,9 @@ export default function CreateOrder() {
             <Box sx={{ flex: 1, overflow: 'auto', p: 1 }}>
               {cart.length === 0 ? <Typography textAlign="center" color="text.secondary" py={4} variant="body2">Add items from menu</Typography> : cart.map((item) => (
                 <Box key={item.menuItemId} sx={{ display: 'flex', alignItems: 'center', py: 0.75, gap: 1 }}>
+                  {getMenuItemImage(item) && (
+                    <Box component="img" src={getMenuItemImage(item)} alt="" sx={{ width: 36, height: 36, borderRadius: 1, objectFit: 'cover', flexShrink: 0 }} />
+                  )}
                   <Box sx={{ flex: 1, minWidth: 0 }}>
                     <Typography variant="body2" fontWeight={600} noWrap>{item.name}</Typography>
                     <Typography variant="caption" color="text.secondary">{formatCurrency(item.price)}</Typography>

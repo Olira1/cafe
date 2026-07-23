@@ -7,6 +7,7 @@ import { orderService } from '../../services/orderService';
 import { tableService } from '../../services/tableService';
 import { formatTime } from '../../utils/formatters';
 import { useNotifications } from '../../contexts/NotificationContext';
+import { getMenuItemImage } from '../../data/menuImages';
 
 const COLUMNS = [
   { status: 'pending', label: 'Pending', color: '#F39C12', nextStatus: 'cooking', nextLabel: 'Start Cooking' },
@@ -106,8 +107,11 @@ export default function KitchenDisplay() {
                       {/* Items */}
                       <Box sx={{ mb: 1.5 }}>
                         {(order.items || []).map((item: any, i: number) => (
-                          <Box key={i} sx={{ display: 'flex', justifyContent: 'space-between', py: 0.25 }}>
-                            <Typography variant="body2" fontWeight={600}>{item.name}</Typography>
+                          <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 0.5 }}>
+                            {getMenuItemImage(item) && (
+                              <Box component="img" src={getMenuItemImage(item)} alt="" sx={{ width: 36, height: 36, borderRadius: 1, objectFit: 'cover', flexShrink: 0 }} />
+                            )}
+                            <Typography variant="body2" fontWeight={600} sx={{ flex: 1 }}>{item.name}</Typography>
                             <Chip label={`x${item.quantity}`} size="small" sx={{ height: 20, fontSize: '0.7rem' }} />
                           </Box>
                         ))}

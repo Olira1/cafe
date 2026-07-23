@@ -9,6 +9,7 @@ import { orderService } from '../../services/orderService';
 import { inventoryService } from '../../services/inventoryService';
 import { formatTime } from '../../utils/formatters';
 import { useAuth } from '../../contexts/AuthContext';
+import { getMenuItemImage } from '../../data/menuImages';
 
 export default function ChefDashboard() {
   const [orders, setOrders] = useState<any[]>([]);
@@ -59,6 +60,19 @@ export default function ChefDashboard() {
                   <Box>
                     <Typography fontWeight={700}>{order.orderNumber}</Typography>
                     <Typography variant="caption" color="text.secondary">{(order.items || []).length} items • {formatTime(order.createdAt)}</Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', ml: 'auto', mr: 2 }}>
+                    {(order.items || []).slice(0, 4).map((item: any, index: number) => (
+                      getMenuItemImage(item) && (
+                        <Box
+                          key={`${item.menuItemId || item.name}-${index}`}
+                          component="img"
+                          src={getMenuItemImage(item)}
+                          alt={item.name}
+                          sx={{ width: 34, height: 34, borderRadius: '50%', objectFit: 'cover', border: 2, borderColor: 'background.paper', ml: index === 0 ? 0 : -0.75 }}
+                        />
+                      )
+                    ))}
                   </Box>
                   <Chip label={order.status} size="small" color={order.status === 'pending' ? 'warning' : order.status === 'cooking' ? 'info' : 'success'} />
                 </Box>

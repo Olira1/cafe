@@ -7,6 +7,7 @@ import { Search, Restaurant, LocalBar, RestaurantMenu } from '@mui/icons-materia
 import { menuService } from '../../services/menuService';
 import { settingsService } from '../../services/settingsService';
 import { formatCurrency } from '../../utils/formatters';
+import { getMenuItemImage } from '../../data/menuImages';
 
 export default function QRMenu() {
   const [categories, setCategories] = useState<any[]>([]);
@@ -74,12 +75,14 @@ export default function QRMenu() {
             {filtered.map((item) => (
               <Grid key={item.id} size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
                 <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column', '&:hover': { transform: 'translateY(-2px)', boxShadow: 4 }, transition: 'all 0.2s' }}>
-                  {/* Visual placeholder */}
-                  <Box sx={{ height: 150, background: item.type === 'drink' ? 'linear-gradient(135deg, #2980B920, #2980B940)' : 'linear-gradient(135deg, #FF6B3520, #FF6B3540)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    {item.type === 'drink'
-                      ? <LocalBar sx={{ fontSize: 56, color: '#2980B9', opacity: 0.5 }} />
-                      : <RestaurantMenu sx={{ fontSize: 56, color: '#FF6B35', opacity: 0.5 }} />
-                    }
+                  <Box sx={{ height: 150, background: item.type === 'drink' ? 'linear-gradient(135deg, #2980B920, #2980B940)' : 'linear-gradient(135deg, #FF6B3520, #FF6B3540)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                    {getMenuItemImage(item) ? (
+                      <Box component="img" src={getMenuItemImage(item)} alt={item.name} sx={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : item.type === 'drink' ? (
+                      <LocalBar sx={{ fontSize: 56, color: '#2980B9', opacity: 0.5 }} />
+                    ) : (
+                      <RestaurantMenu sx={{ fontSize: 56, color: '#FF6B35', opacity: 0.5 }} />
+                    )}
                   </Box>
                   <CardContent sx={{ flex: 1 }}>
                     <Typography variant="subtitle2" fontWeight={800} gutterBottom>{item.name}</Typography>
