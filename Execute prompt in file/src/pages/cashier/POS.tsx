@@ -115,7 +115,7 @@ export default function POS() {
     <CashierLayout>
       <PageHeader title="Point of Sale" subtitle="Create and manage orders" breadcrumbs={[{ label: 'Cashier' }, { label: 'POS' }]} />
 
-      <Box sx={{ display: 'flex', gap: 2, height: 'calc(100vh - 200px)', minHeight: 600 }}>
+      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', lg: 'row' }, gap: 2, height: { xs: 'auto', lg: 'calc(100vh - 200px)' }, minHeight: { xs: 0, lg: 600 } }}>
         {/* LEFT — Menu */}
         <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
           {/* Search */}
@@ -170,15 +170,15 @@ export default function POS() {
         </Box>
 
         {/* RIGHT — Cart */}
-        <Box sx={{ width: 360, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <Paper sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <Box sx={{ width: { xs: '100%', lg: 360 }, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <Paper sx={{ flex: 1, minHeight: { xs: 560, lg: 0 }, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Typography variant="h6" fontWeight={700}><PointOfSale sx={{ mr: 1, verticalAlign: 'middle' }} />Cart ({cart.length})</Typography>
                 {cart.length > 0 && <Button size="small" color="error" onClick={clearCart}>Clear</Button>}
               </Box>
               {/* Order Type & Table */}
-              <Box sx={{ mt: 1, display: 'flex', gap: 1 }}>
+              <Box sx={{ mt: 1, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                 <ToggleButtonGroup size="small" value={orderType} exclusive onChange={(_, v) => v && setOrderType(v)}>
                   <ToggleButton value="dine-in">Dine-In</ToggleButton>
                   <ToggleButton value="takeaway">Takeaway</ToggleButton>
@@ -242,7 +242,7 @@ export default function POS() {
 
               {/* Payment Method */}
               <Typography variant="caption" fontWeight={700} display="block" mb={1}>Payment Method</Typography>
-              <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+              <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: { xs: 'wrap', sm: 'nowrap' }, '& .MuiButton-root': { minWidth: { xs: 'calc(50% - 4px)', sm: 0 } } }}>
                 {[
                   { value: 'cash', label: 'Cash', icon: <Money /> },
                   { value: 'card', label: 'Card', icon: <CreditCard /> },

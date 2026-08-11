@@ -87,7 +87,7 @@ export default function CreateOrder() {
 
       {success && <Alert severity="success" sx={{ mb: 2 }}>Order {success} sent to kitchen! Redirecting...</Alert>}
 
-      <Box sx={{ display: 'flex', gap: 2, height: 'calc(100vh - 220px)', minHeight: 500 }}>
+      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 2, height: { xs: 'auto', md: 'calc(100vh - 220px)' }, minHeight: { xs: 0, md: 500 } }}>
         {/* Menu */}
         <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
           <TextField size="small" placeholder="Search menu..." value={search} onChange={(e) => setSearch(e.target.value)} fullWidth />
@@ -125,8 +125,8 @@ export default function CreateOrder() {
         </Box>
 
         {/* Cart */}
-        <Box sx={{ width: 300, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <Card sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+        <Box sx={{ width: { xs: '100%', md: 300 }, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <Card sx={{ flex: 1, minHeight: { xs: 500, md: 0 }, display: 'flex', flexDirection: 'column' }}>
             <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
               <Typography fontWeight={700}>Order Summary ({cart.length})</Typography>
             </Box>

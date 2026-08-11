@@ -61,11 +61,11 @@ export default function KitchenDisplay() {
         breadcrumbs={[{ label: 'Chef' }, { label: 'Kitchen' }]}
       />
 
-      <Box sx={{ display: 'flex', gap: 2, overflowX: 'auto', pb: 2 }}>
+      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 2, overflowX: { xs: 'visible', md: 'auto' }, pb: 2 }}>
         {COLUMNS.map((col) => {
           const colOrders = orders.filter((o) => o.status === col.status);
           return (
-            <Box key={col.status} sx={{ minWidth: 320, flex: 1 }}>
+            <Box key={col.status} sx={{ minWidth: { xs: 0, md: 320 }, width: { xs: '100%', md: 'auto' }, flex: 1 }}>
               {/* Column Header */}
               <Box sx={{ p: 1.5, borderRadius: 2, bgcolor: `${col.color}20`, mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>

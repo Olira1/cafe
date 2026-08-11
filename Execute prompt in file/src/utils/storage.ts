@@ -1,3 +1,5 @@
+import { syncDevelopmentValue } from './developmentSync';
+
 export function getAll<T>(key: string): T[] {
   try {
     const data = localStorage.getItem(key);
@@ -13,7 +15,9 @@ export function getById<T extends { id: string }>(key: string, id: string): T | 
 }
 
 export function save<T>(key: string, items: T[]): void {
-  localStorage.setItem(key, JSON.stringify(items));
+  const value = JSON.stringify(items);
+  localStorage.setItem(key, value);
+  syncDevelopmentValue(key, value);
 }
 
 export function create<T extends { id: string }>(key: string, item: Omit<T, 'id'>): T {
@@ -51,5 +55,7 @@ export function getSingle<T>(key: string): T | null {
 }
 
 export function setSingle<T>(key: string, value: T): void {
-  localStorage.setItem(key, JSON.stringify(value));
+  const serialized = JSON.stringify(value);
+  localStorage.setItem(key, serialized);
+  syncDevelopmentValue(key, serialized);
 }
