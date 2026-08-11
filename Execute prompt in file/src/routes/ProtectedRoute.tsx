@@ -14,10 +14,14 @@ const ROLE_DEFAULTS: Record<string, string> = {
 };
 
 export default function ProtectedRoute({ children, roles }: Props) {
-  const { user, isAuthenticated } = useAuth();
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
-  if (roles && !roles.includes(user?.role)) {
-    return <Navigate to={ROLE_DEFAULTS[user?.role] || '/login'} replace />;
-  }
+  // TEMPORARY: Bypass all authentication - allow access to everything
   return <>{children}</>;
+  
+  // Original code commented out:
+  // const { user, isAuthenticated } = useAuth();
+  // if (!isAuthenticated) return <Navigate to="/login" replace />;
+  // if (roles && !roles.includes(user?.role)) {
+  //   return <Navigate to={ROLE_DEFAULTS[user?.role] || '/login'} replace />;
+  // }
+  // return <>{children}</>;
 }

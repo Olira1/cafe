@@ -48,10 +48,14 @@ import ConsumerMenu from './pages/consumer/Menu';
 import QRMenu from './pages/qr/QRMenu';
 
 function RootRedirect() {
-  const { user, isAuthenticated } = useAuth();
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
-  const routes: Record<string, string> = { admin: '/admin', cashier: '/cashier', chef: '/chef', waiter: '/waiter' };
-  return <Navigate to={routes[user?.role] || '/login'} replace />;
+  // TEMPORARY: Always redirect to admin dashboard
+  return <Navigate to="/admin" replace />;
+  
+  // Original code commented out:
+  // const { user, isAuthenticated } = useAuth();
+  // if (!isAuthenticated) return <Navigate to="/login" replace />;
+  // const routes: Record<string, string> = { admin: '/admin', cashier: '/cashier', chef: '/chef', waiter: '/waiter' };
+  // return <Navigate to={routes[user?.role] || '/login'} replace />;
 }
 
 function AppRoutes() {
@@ -76,7 +80,13 @@ function AppRoutes() {
   return (
     <Routes key={syncVersion}>
       <Route path="/" element={<RootRedirect />} />
-      <Route path="/login" element={<Login />} />
+      <Route path="/login" element={<AdminDashboard />} />
+
+      {/* TEMPORARY: Direct access routes for testing */}
+      <Route path="/test-admin" element={<AdminDashboard />} />
+      <Route path="/test-cashier" element={<CashierDashboard />} />
+      <Route path="/test-chef" element={<ChefDashboard />} />
+      <Route path="/test-waiter" element={<WaiterDashboard />} />
 
       {/* Admin */}
       <Route path="/admin" element={<ProtectedRoute roles={['admin']}><AdminDashboard /></ProtectedRoute>} />
