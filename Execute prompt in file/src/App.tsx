@@ -1,6 +1,7 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 import { initializeData } from './data/defaultData';
+import { DEVELOPMENT_SYNC_EVENT, startDevelopmentSync } from './utils/developmentSync';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { NotificationProvider } from './contexts/NotificationContext';
@@ -54,10 +55,26 @@ function RootRedirect() {
 }
 
 function AppRoutes() {
-  useEffect(() => { initializeData(); }, []);
+  const location = useLocation();
+  const [syncVersion, setSyncVersion] = useState(0);
+
+  useEffect(() => {
+    initializeData();
+    return startDevelopmentSync();
+  }, []);
+
+  useEffect(() => {
+    const handleDevelopmentSync = () => {
+      const isEditingOrder = location.pathname === '/waiter/create-order' || location.pathname === '/cashier/pos';
+      if (!isEditingOrder) setSyncVersion((current) => current + 1);
+    };
+
+    window.addEventListener(DEVELOPMENT_SYNC_EVENT, handleDevelopmentSync);
+    return () => window.removeEventListener(DEVELOPMENT_SYNC_EVENT, handleDevelopmentSync);
+  }, [location.pathname]);
 
   return (
-    <Routes>
+    <Routes key={syncVersion}>
       <Route path="/" element={<RootRedirect />} />
       <Route path="/login" element={<Login />} />
 

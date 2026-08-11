@@ -19,6 +19,7 @@ export default defineConfig(({ mode }) => {
     plugins: [
       react(),
       tailwindcss(),
+      developmentSharedStoragePlugin(),
       figmaSiteConfiguration(siteConfiguration),
       figmaErrorOverlayReplay(),
       figmaReactRefreshBoundaryFallback(),
@@ -41,6 +42,88 @@ export default defineConfig(({ mode }) => {
     },
   }
 })
+
+function developmentSharedStoragePlugin(): Plugin {
+  const store = new Map<string, string>()
+  let version = 0
+  let bootstrapped = false
+
+  const isSharedKey = (key: unknown): key is string => (
+    typeof key === 'string' && key.startsWith('rms_') && key !== 'rms_session' && key !== 'rms_theme'
+  )
+
+  return {
+    name: 'development-shared-storage',
+    apply: 'serve',
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        const requestUrl = new URL(req.url || '/', 'http://localhost')
+        if (!requestUrl.pathname.startsWith('/api/dev-sync')) return next()
+
+        res.setHeader('Cache-Control', 'no-store')
+        res.setHeader('Content-Type', 'application/json')
+
+        const sendSnapshot = () => {
+          res.statusCode = 200
+          res.end(JSON.stringify({ version, values: Object.fromEntries(store) }))
+        }
+
+        if (req.method === 'GET' && requestUrl.pathname === '/api/dev-sync') {
+          if (Number(requestUrl.searchParams.get('version')) === version) {
+            res.statusCode = 204
+            res.end()
+          } else {
+            sendSnapshot()
+          }
+          return
+        }
+
+        if (req.method !== 'POST') {
+          res.statusCode = 405
+          res.end(JSON.stringify({ error: 'Method not allowed' }))
+          return
+        }
+
+        let body = ''
+        req.on('data', (chunk) => {
+          body += chunk
+          if (body.length > 25 * 1024 * 1024) req.destroy()
+        })
+        req.on('end', () => {
+          try {
+            const payload = JSON.parse(body || '{}')
+
+            if (requestUrl.pathname === '/api/dev-sync/bootstrap') {
+              if (!bootstrapped) {
+                for (const [key, value] of Object.entries(payload.values || {})) {
+                  if (isSharedKey(key) && typeof value === 'string' && !store.has(key)) store.set(key, value)
+                }
+                bootstrapped = true
+                version += 1
+              }
+              sendSnapshot()
+              return
+            }
+
+            if (requestUrl.pathname === '/api/dev-sync' && isSharedKey(payload.key) && typeof payload.value === 'string') {
+              store.set(payload.key, payload.value)
+              version += 1
+              res.statusCode = 200
+              res.end(JSON.stringify({ version }))
+              return
+            }
+
+            res.statusCode = 400
+            res.end(JSON.stringify({ error: 'Invalid development sync request' }))
+          } catch {
+            res.statusCode = 400
+            res.end(JSON.stringify({ error: 'Invalid JSON body' }))
+          }
+        })
+      })
+    },
+  }
+}
 
 type FigmaSiteConfiguration = {
   title?: string

@@ -44,11 +44,82 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       },
       shape: { borderRadius: 12 },
       components: {
-        MuiButton: { styleOverrides: { root: { textTransform: 'none', fontWeight: 600, borderRadius: 8 } } },
+        MuiButton: {
+          styleOverrides: {
+            root: {
+              textTransform: 'none',
+              fontWeight: 600,
+              borderRadius: 8,
+              '@media (max-width: 599.95px)': { minHeight: 40 },
+            },
+          },
+        },
         MuiCard: { styleOverrides: { root: { borderRadius: 16, boxShadow: mode === 'light' ? '0 2px 12px rgba(0,0,0,0.08)' : '0 2px 12px rgba(0,0,0,0.3)' } } },
         MuiPaper: { styleOverrides: { root: { borderRadius: 12 } } },
         MuiChip: { styleOverrides: { root: { fontWeight: 600 } } },
         MuiTableHead: { styleOverrides: { root: { '& .MuiTableCell-root': { fontWeight: 700, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' } } } },
+        MuiTableCell: {
+          styleOverrides: {
+            root: {
+              whiteSpace: 'nowrap',
+              '@media (max-width: 599.95px)': { padding: '10px 12px' },
+            },
+          },
+        },
+        MuiTableContainer: {
+          styleOverrides: {
+            root: { WebkitOverflowScrolling: 'touch' },
+          },
+        },
+        MuiTablePagination: {
+          styleOverrides: {
+            toolbar: {
+              '@media (max-width: 599.95px)': {
+                paddingLeft: 8,
+                paddingRight: 4,
+                minHeight: 52,
+                flexWrap: 'wrap',
+                justifyContent: 'flex-end',
+              },
+            },
+            spacer: { '@media (max-width: 599.95px)': { display: 'none' } },
+            selectLabel: { '@media (max-width: 599.95px)': { display: 'none' } },
+            select: { '@media (max-width: 599.95px)': { display: 'none' } },
+          },
+        },
+        MuiDialog: {
+          styleOverrides: {
+            paper: {
+              '@media (max-width: 599.95px)': {
+                width: 'calc(100% - 24px)',
+                maxWidth: 'calc(100% - 24px)',
+                maxHeight: 'calc(100% - 24px)',
+                margin: 12,
+                borderRadius: 16,
+              },
+            },
+          },
+        },
+        MuiDialogTitle: {
+          styleOverrides: {
+            root: { '@media (max-width: 599.95px)': { padding: '18px 16px 10px' } },
+          },
+        },
+        MuiDialogContent: {
+          styleOverrides: {
+            root: { '@media (max-width: 599.95px)': { paddingLeft: 16, paddingRight: 16 } },
+          },
+        },
+        MuiDialogActions: {
+          styleOverrides: {
+            root: {
+              '@media (max-width: 599.95px)': {
+                padding: '12px 16px 16px',
+                '& .MuiButton-root': { flex: 1 },
+              },
+            },
+          },
+        },
       },
     }), [mode]);
 

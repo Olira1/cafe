@@ -56,12 +56,12 @@ export default function ChefDashboard() {
               {orders.length === 0 ? (
                 <Typography textAlign="center" color="text.secondary" py={4}>No active orders</Typography>
               ) : orders.slice(0, 8).map((order) => (
-                <Box key={order.id} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 1, borderBottom: 1, borderColor: 'divider' }}>
+                <Box key={order.id} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: { xs: 'wrap', sm: 'nowrap' }, gap: 1, py: 1, borderBottom: 1, borderColor: 'divider' }}>
                   <Box>
                     <Typography fontWeight={700}>{order.orderNumber}</Typography>
                     <Typography variant="caption" color="text.secondary">{(order.items || []).length} items • {formatTime(order.createdAt)}</Typography>
                   </Box>
-                  <Box sx={{ display: 'flex', ml: 'auto', mr: 2 }}>
+                  <Box sx={{ display: { xs: 'none', sm: 'flex' }, ml: 'auto', mr: 2 }}>
                     {(order.items || []).slice(0, 4).map((item: any, index: number) => (
                       getMenuItemImage(item) && (
                         <Box

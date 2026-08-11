@@ -1,4 +1,4 @@
-import { getAll, create, update, remove } from '../utils/storage';
+import { getAll, create, update, remove, save } from '../utils/storage';
 import { auditService } from './auditService';
 
 const KEY = 'rms_customers';
@@ -22,6 +22,6 @@ export const customerService = {
     if (idx === -1) return;
     customers[idx].totalOrders = (customers[idx].totalOrders || 0) + 1;
     customers[idx].totalSpent = (customers[idx].totalSpent || 0) + amount;
-    localStorage.setItem(KEY, JSON.stringify(customers));
+    save(KEY, customers);
   },
 };

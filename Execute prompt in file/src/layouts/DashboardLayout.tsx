@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Box, Drawer, AppBar, Toolbar, List, ListItem, ListItemButton, ListItemIcon,
   ListItemText, Typography, IconButton, Avatar, Badge, Menu, MenuItem,
@@ -40,6 +40,10 @@ export default function DashboardLayout({ navItems, children, roleLabel, roleCol
   const { notifications, unreadCount, markRead, markAllRead } = useNotifications();
   const navigate = useNavigate();
   const location = useLocation();
+
+  useEffect(() => {
+    setDrawerOpen(!isMobile);
+  }, [isMobile]);
 
   const handleLogout = () => {
     logout();
@@ -99,8 +103,11 @@ export default function DashboardLayout({ navItems, children, roleLabel, roleCol
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh' }}>
       <AppBar position="fixed" elevation={0} sx={{ zIndex: (t) => t.zIndex.drawer + 1, bgcolor: 'background.paper', borderBottom: 1, borderColor: 'divider', color: 'text.primary' }}>
-        <Toolbar sx={{ gap: 1 }}>
-          <IconButton onClick={() => setDrawerOpen(!drawerOpen)} size="small"><MenuIcon /></IconButton>
+        <Toolbar sx={{ gap: 1, minHeight: { xs: 56, sm: 64 }, px: { xs: 1.5, sm: 2 } }}>
+          <IconButton onClick={() => setDrawerOpen(!drawerOpen)} size="small" aria-label="Open navigation"><MenuIcon /></IconButton>
+          <Typography variant="subtitle2" fontWeight={800} sx={{ display: { xs: 'block', md: 'none' }, color: roleColor }}>
+            {roleLabel}
+          </Typography>
           <Box sx={{ flex: 1 }} />
           <Tooltip title={`Switch to ${mode === 'light' ? 'dark' : 'light'} mode`}>
             <IconButton onClick={toggleTheme} size="small">{mode === 'light' ? <DarkMode /> : <LightMode />}</IconButton>
@@ -119,7 +126,7 @@ export default function DashboardLayout({ navItems, children, roleLabel, roleCol
       </AppBar>
 
       {/* Notifications Menu */}
-      <Menu anchorEl={notifAnchor} open={!!notifAnchor} onClose={() => setNotifAnchor(null)} PaperProps={{ sx: { width: 360, maxHeight: 480 } }}>
+      <Menu anchorEl={notifAnchor} open={!!notifAnchor} onClose={() => setNotifAnchor(null)} PaperProps={{ sx: { width: { xs: 'calc(100vw - 24px)', sm: 360 }, maxWidth: 360, maxHeight: '70vh' } }}>
         <Box sx={{ px: 2, py: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Typography fontWeight={700}>Notifications</Typography>
           {unreadCount > 0 && <Typography variant="caption" sx={{ cursor: 'pointer', color: 'primary.main' }} onClick={markAllRead}>Mark all read</Typography>}
@@ -155,14 +162,35 @@ export default function DashboardLayout({ navItems, children, roleLabel, roleCol
         sx={{
           width: drawerOpen ? DRAWER_WIDTH : 0,
           flexShrink: 0,
-          '& .MuiDrawer-paper': { width: DRAWER_WIDTH, boxSizing: 'border-box', borderRight: 1, borderColor: 'divider', mt: '64px', height: 'calc(100% - 64px)', bgcolor: 'background.paper' },
+          '& .MuiDrawer-paper': {
+            width: { xs: 'min(82vw, 280px)', md: DRAWER_WIDTH },
+            boxSizing: 'border-box',
+            borderRight: 1,
+            borderColor: 'divider',
+            mt: { xs: '56px', sm: '64px' },
+            height: { xs: 'calc(100% - 56px)', sm: 'calc(100% - 64px)' },
+            bgcolor: 'background.paper',
+          },
         }}
       >
         {drawerContent}
       </Drawer>
 
       {/* Main Content */}
-      <Box component="main" sx={{ flexGrow: 1, p: 3, mt: '64px', minWidth: 0, transition: 'margin 0.2s', bgcolor: 'background.default', minHeight: 'calc(100vh - 64px)' }}>
+      <Box
+        component="main"
+        sx={{
+          flexGrow: 1,
+          p: { xs: 1.5, sm: 2, lg: 3 },
+          mt: { xs: '56px', sm: '64px' },
+          minWidth: 0,
+          maxWidth: '100%',
+          overflow: 'hidden',
+          transition: 'margin 0.2s',
+          bgcolor: 'background.default',
+          minHeight: { xs: 'calc(100vh - 56px)', sm: 'calc(100vh - 64px)' },
+        }}
+      >
         {children}
       </Box>
     </Box>

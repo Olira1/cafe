@@ -13,13 +13,13 @@ interface StatCardProps {
 export default function StatCard({ title, value, icon, color = '#FF6B35', trend, subtitle }: StatCardProps) {
   return (
     <Card sx={{ height: '100%' }}>
-      <CardContent>
+      <CardContent sx={{ p: { xs: 1.75, sm: 2 }, '&:last-child': { pb: { xs: 1.75, sm: 2 } } }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <Box>
             <Typography variant="body2" color="text.secondary" gutterBottom sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.7rem' }}>
               {title}
             </Typography>
-            <Typography variant="h4" fontWeight={800} sx={{ mb: 0.5 }}>
+            <Typography variant="h4" fontWeight={800} sx={{ mb: 0.5, fontSize: { xs: '1.65rem', sm: '2.125rem' } }}>
               {value}
             </Typography>
             {subtitle && <Typography variant="body2" color="text.secondary">{subtitle}</Typography>}
@@ -32,7 +32,7 @@ export default function StatCard({ title, value, icon, color = '#FF6B35', trend,
               </Box>
             )}
           </Box>
-          <Avatar sx={{ bgcolor: `${color}20`, width: 56, height: 56 }}>
+          <Avatar sx={{ bgcolor: `${color}20`, width: { xs: 44, sm: 56 }, height: { xs: 44, sm: 56 }, ml: 1, '& .MuiSvgIcon-root': { fontSize: { xs: 22, sm: 24 } } }}>
             <Box sx={{ color }}>{icon}</Box>
           </Avatar>
         </Box>

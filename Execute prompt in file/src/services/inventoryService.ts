@@ -1,4 +1,4 @@
-import { getAll, create, update, remove } from '../utils/storage';
+import { getAll, create, update, remove, save } from '../utils/storage';
 import { auditService } from './auditService';
 
 const KEY = 'rms_inventory';
@@ -31,7 +31,7 @@ export const inventoryService = {
     const idx = items.findIndex((i: any) => i.id === id);
     if (idx === -1) return null;
     items[idx].quantity = Math.max(0, items[idx].quantity + delta);
-    localStorage.setItem(KEY, JSON.stringify(items));
+    save(KEY, items);
     return items[idx];
   },
 };
